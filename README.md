@@ -1,5 +1,5 @@
 # paint-by-numbers
-A quick tool to transform any picture in a paint-by-number canvas, using opencv
+A quick Python tool to transform any picture in a paint-by-number canvas, using opencv
 
 # How it works
 1)Picture is resized, denoised and cleaned using morphomat
