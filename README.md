@@ -19,12 +19,12 @@ The definition of the class Canvas in the python script `canvas.py`
 - OpenCV
 
 ### Execution:
-run `python run.py [PATH_PICTURE] [NB_COLOR] [PLOT] [SAVE] [TARGET_SIZE]` 
-PATH_PICTURE: path of the source picture
-NB_COLOR : number of colors you want in the canvas (10 to 20)
-PLOT: optional, boolean to set to True if you want to see some plots. Default False
-SAVE: optional, boolean to set to True if you want to save results in the `./outputs` folder. Default True
-TARGET_SIZE: interger, size in pixel of the largest dimension of the output canvas (default 4000)
+run `python run.py [path] [nb_color] [plot] [save] [pixel_size]` 
+path: path of the source picture
+nb_color : number of colors you want in the canvas (10 to 20)
+plot: optional, boolean to set to True if you want to see some plots. Default False
+save: optional, boolean to set to True if you want to save results in the `./outputs` folder. Default True
+pixel_size: interger, size in pixel of the largest dimension of the output canvas (default 4000)
 
 ### Result:
 
