@@ -24,16 +24,18 @@ class Canvas():
         Wether you want to plot results or not
     save : boolean, optional
         Wether you want to save results or not
+    pixel_size: interger, optional, default 4000
+        size in pxl of the largest dimension of the ouptut canvas    
     """
 
-    def __init__(self, path_pic, nb_color, plot=False, save=True, pixel_width=4000):
+    def __init__(self, path_pic, nb_color, plot=False, save=True, pixel_size=4000):
         
         self.namefile = ntpath.basename(path_pic).split(".")[0]
         self.src = cv2.cvtColor(cv2.imread(path_pic), cv2.COLOR_BGR2RGB)
         self.nb_color = nb_color
         self.plot = plot
         self.save = save
-        self.tar_width = pixel_width
+        self.tar_width = pixel_size
         self.colormap = []
 
 
@@ -139,7 +141,3 @@ class Canvas():
 
 
 
-NAMEFILE = 'lahaut.jpg'
-CANVAS = Canvas("./inputs/" + NAMEFILE, 20, False, True)
-CANVAS.generate()
-CANVAS.display_colormap()
