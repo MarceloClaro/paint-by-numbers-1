@@ -19,12 +19,13 @@ The definition of the class Canvas in the python script `canvas.py`
 - OpenCV
 
 ### Execution:
-run `python run.py [path] [nb_color] [plot] [save] [pixel_size]` 
-path: path of the source picture
-nb_color : number of colors you want in the canvas (10 to 20)
-plot: optional, boolean to set to True if you want to see some plots. Default False
-save: optional, boolean to set to True if you want to save results in the `./outputs` folder. Default True
-pixel_size: interger, size in pixel of the largest dimension of the output canvas (default 4000)
+run `python run.py [path] [nb_color] [plot] [save] [pixel_size]` with:
+
+  **path**: path of the source picture  
+  **nb_color** : number of colors you want in the canvas (10 to 20)  
+  **plot**: optional, boolean to set to True if you want to see some plots. Default False  
+  **save**: optional, boolean to set to True if you want to save results in the `./outputs` folder. Default True  
+  **pixel_size**: interger, size in pixel of the largest dimension of the output canvas (default 4000)
 
 ### Result:
 
@@ -37,3 +38,7 @@ pixel_size: interger, size in pixel of the largest dimension of the output canva
 #### Colormap
 ![alt text](https://github.com/Haha89/paint-by-number/blob/master/outputs/chirico-colormap.png "Colormap")
 
+### Next Steps:
+
+- Improve the position of the label in the region
+- Improve the detection of a contours (shapes) that should not be drawn because too small
