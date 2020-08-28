@@ -7,7 +7,7 @@ A quick Python tool to transform any picture in a paint-by-number canvas, using 
 3) Transformation of the picture to match these colors  
 4) Contour detection and drawing of contours on new canvas  
 5) Add label of each shape on the canvas  
-6) Creation of the colormap  for the user
+6) Creation of the colormap for the user
 
 # This project includes
 A set of PNG pictures in `./inputs` folder, associated canvas and colormaps in the `./outputs` folder
@@ -25,7 +25,7 @@ run `python run.py [path] [nb_color] [plot] [save] [pixel_size]` with:
   **nb_color** : number of colors you want in the canvas (10 to 20)  
   **plot**: optional, boolean to set to True if you want to see some plots. Default False  
   **save**: optional, boolean to set to True if you want to save results in the `./outputs` folder. Default True  
-  **pixel_size**: interger, size in pixel of the largest dimension of the output canvas (default 4000)
+  **pixel_size**: optional, interger, size in pixel of the largest dimension of the output canvas (default 4000)
 
 ### Result:
 
@@ -40,5 +40,5 @@ run `python run.py [path] [nb_color] [plot] [save] [pixel_size]` with:
 
 ### Next Steps:
 
-- Improve the position of the label in the region
-- Improve the detection of a contours (shapes) that should not be drawn because too small
+- Better positioning of the label in each region
+- Better contour filtering to remove small regions
