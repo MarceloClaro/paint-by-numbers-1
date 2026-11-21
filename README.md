@@ -1,44 +1,78 @@
-# paint-by-numbers
-A quick Python tool to transform any picture in a paint-by-number canvas, using opencv
+# Pintura por Números
 
-# How it works
-1) Picture is resized, denoised and cleaned using morphomat  
-2) K-mean algorithm to detect the k-colors summarizing the best the picture  
-3) Transformation of the picture to match these colors  
-4) Contour detection and drawing of contours on new canvas  
-5) Add label of each shape on the canvas  
-6) Creation of the colormap  for the user
+Aplicativo para transformar qualquer imagem em uma tela de **pintura por números**, com **paleta de cores identificada** (nome da cor, HEX, RGB, CMYK e porcentagem de área).
 
-# This project includes
-A set of PNG pictures in `./inputs` folder, associated canvas and colormaps in the `./outputs` folder
-The definition of the class Canvas in the python script `canvas.py`
+O projeto inclui:
 
-### Requirements:
-- Numpy
-- Matplotlib
-- OpenCV
+- **Aplicativo web (Streamlit)** para uso direto no navegador.
+- **CLI (linha de comando)** para gerar arquivos localmente.
+- Geração de **tela numerada**, **imagem quantizada** e **paleta identificada**.
 
-### Execution:
-run `python run.py [path] [nb_color] [plot] [save] [pixel_size]` with:
+## Funcionalidades
 
-  **path**: path of the source picture  
-  **nb_color** : number of colors you want in the canvas (10 to 20)  
-  **plot**: optional, boolean to set to True if you want to see some plots. Default False  
-  **save**: optional, boolean to set to True if you want to save results in the `./outputs` folder. Default True  
-  **pixel_size**: interger, size in pixel of the largest dimension of the output canvas (default 4000)
+- Quantização de cores com **K-Means**.
+- Geração de contornos e numeração das regiões.
+- Identificação da paleta com:
+  - Número da cor
+  - Nome aproximado da cor (PT-BR)
+  - Código HEX
+  - Valores RGB
+  - Valores CMYK (%)
+  - Percentual de área na imagem
+- Exportação de resultados em PNG e paleta em CSV (no app Streamlit).
 
-### Result:
+## Deploy no Streamlit Community Cloud
 
-#### De Chirico, Place d'Italie, 1922
-![alt text](https://github.com/Haha89/paint-by-number/blob/master/inputs/chirico.jpg "De Chirico, Place d'Italie, 1922")
-#### Expected result (20 colors)
-![alt text](https://github.com/Haha89/paint-by-number/blob/master/outputs/chirico-result.png "Expected result")
-#### Canvas
-![alt text](https://github.com/Haha89/paint-by-number/blob/master/outputs/chirico-canvas.png "Canvas")
-#### Colormap
-![alt text](https://github.com/Haha89/paint-by-number/blob/master/outputs/chirico-colormap.png "Colormap")
+Este repositório está pronto para deploy em [Streamlit Community Cloud](https://share.streamlit.io/new):
 
-### Next Steps:
+1. Faça fork/importe este repositório no GitHub.
+2. Acesse [share.streamlit.io/new](https://share.streamlit.io/new).
+3. Selecione o repositório e a branch.
+4. Defina o arquivo principal como `streamlit_app.py`.
+5. Clique em **Deploy**.
 
-- Improve the position of the label in the region
-- Improve the detection of a contours (shapes) that should not be drawn because too small
+## Execução local (Streamlit)
+
+```bash
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
+## Execução local (CLI)
+
+```bash
+pip install -r requirements.txt
+python run.py caminho/da/imagem.jpg 12 --tamanho 2000 --saida ./outputs
+```
+
+Argumentos:
+
+- `caminho`: caminho da imagem de entrada.
+- `cores`: número de cores desejadas.
+- `--plot`: `true/false` para exibir gráficos.
+- `--salvar`: `true/false` para salvar arquivos.
+- `--tamanho`: maior dimensão da imagem de saída em pixels (padrão: 4000).
+- `--saida`: pasta de saída (padrão: `./outputs`).
+
+## Saídas geradas
+
+- `*-resultado.png`: imagem quantizada (resultado esperado).
+- `*-tela.png`: tela de pintura por números.
+- `*-paleta.png`: paleta de cores identificada.
+
+## Estrutura
+
+```text
+.
+├── canvas.py              # Lógica de processamento e identificação da paleta
+├── streamlit_app.py       # Aplicativo web Streamlit
+├── run.py                 # Interface de linha de comando
+├── requirements.txt       # Dependências Python
+├── packages.txt           # Pacotes de sistema (Streamlit Cloud)
+├── inputs/                # Imagens de exemplo
+└── outputs/               # Resultados gerados
+```
+
+## Licença
+
+Este projeto está licenciado sob a licença GPL-3.0. Veja o arquivo [LICENSE](LICENSE).
