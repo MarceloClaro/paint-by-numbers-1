@@ -19,7 +19,9 @@ O projeto inclui:
   - Valores RGB
   - Valores CMYK (%)
   - Mistura para pintura manual: Ciano, Magenta, Amarelo, Preto e Branco (%)
+  - Quantidade estimada em ml por cor e por componente (C/M/Y/P/B), conforme dimensão física e tinta total
   - Percentual de área na imagem
+- Suporte a dimensões físicas da pintura em cm (até **500 x 500 cm / 5m x 5m**), formatos retangulares e quadrados.
 - Exportação de resultados em PNG e paleta em CSV (no app Streamlit).
 
 ## Deploy no Streamlit Community Cloud
@@ -43,7 +45,7 @@ streamlit run streamlit_app.py
 
 ```bash
 pip install -r requirements.txt
-python run.py caminho/da/imagem.jpg 12 --tamanho 2000 --saida ./outputs
+python run.py caminho/da/imagem.jpg 12 --tamanho 2000 --saida ./outputs --largura-cm 100 --altura-cm 150 --tinta-ml 500
 ```
 
 Argumentos:
@@ -54,6 +56,9 @@ Argumentos:
 - `--salvar`: `true/false` para salvar arquivos.
 - `--tamanho`: maior dimensão da imagem de saída em pixels (padrão: 4000).
 - `--saida`: pasta de saída (padrão: `./outputs`).
+- `--largura-cm`: largura física da pintura em cm (até 500).
+- `--altura-cm`: altura física da pintura em cm (até 500; se omitida, calcula pela proporção).
+- `--tinta-ml`: tinta total estimada em ml (distribuída proporcionalmente à área de cada cor).
 
 ## Saídas geradas
 
