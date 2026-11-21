@@ -18,13 +18,13 @@ st.set_page_config(page_title="Pintura por Números", page_icon="🎨", layout="
 st.title("🎨 Pintura por Números com Paleta de Cores Identificada")
 st.caption(
     "Envie uma imagem, escolha a quantidade de cores e gere a tela numerada, "
-    "a imagem quantizada e a paleta com identificação de cor, HEX, RGB, CMYK e área."
+    "a imagem quantizada e a paleta com identificação de cor, HEX, RGB, CMYK, mistura para pintura manual (Ciano, Magenta, Amarelo, Preto, Branco) e área."
 )
 
 with st.sidebar:
     st.header("Configurações")
     arquivo = st.file_uploader("Imagem de entrada", type=["jpg", "jpeg", "png", "webp"])
-    nb_cores = st.slider("Número de cores", min_value=2, max_value=40, value=12, step=1)
+    nb_cores = st.slider("Número de cores", min_value=2, max_value=50, value=12, step=1)
     tamanho = st.slider("Maior dimensão (px)", min_value=500, max_value=4000, value=1500, step=100)
     gerar = st.button("Gerar pintura por números", type="primary", use_container_width=True)
 
@@ -59,8 +59,10 @@ st.subheader("Tela para pintar")
 st.image(canvas_img, use_container_width=True, clamp=True)
 
 st.subheader("Paleta de cores identificada")
+st.caption("Mistura para pintura manual: C=Ciano, M=Magenta, Y=Amarelo, P=Preto, B=Branco (percentuais heurísticos para referência).")
 linhas = []
 for cor in paleta:
+    m = cor.mistura
     linhas.append(
         {
             "Nº": cor.numero,
@@ -68,6 +70,7 @@ for cor in paleta:
             "HEX": cor.hex,
             "RGB": f"{cor.rgb[0]}, {cor.rgb[1]}, {cor.rgb[2]}",
             "CMYK (%)": f"{cor.cmyk[0]:.0f}, {cor.cmyk[1]:.0f}, {cor.cmyk[2]:.0f}, {cor.cmyk[3]:.0f}",
+            "Mistura pintura C,M,Y,P,B (%)": f"{m[0]:.1f}, {m[1]:.1f}, {m[2]:.1f}, {m[3]:.1f}, {m[4]:.1f}",
             "Área (%)": f"{cor.percentual:.2f}",
         }
     )
@@ -96,9 +99,10 @@ def img_bytes_gray(arr_gray, fmt="PNG"):
     Image.fromarray(arr_gray).save(buf, format=fmt)
     return buf.getvalue()
 
-csv = "numero,nome,hex,r,g,b,c,m,y,k,area_percentual\n"
+csv = "numero,nome,hex,r,g,b,c,m,y,k,ciano,magenta,amarelo,preto,branco,area_percentual\n"
 for cor in paleta:
-    csv += f"{cor.numero},{cor.nome},{cor.hex},{cor.rgb[0]},{cor.rgb[1]},{cor.rgb[2]},{cor.cmyk[0]},{cor.cmyk[1]},{cor.cmyk[2]},{cor.cmyk[3]},{cor.percentual}\n"
+    mist = cor.mistura
+    csv += f"{cor.numero},{cor.nome},{cor.hex},{cor.rgb[0]},{cor.rgb[1]},{cor.rgb[2]},{cor.cmyk[0]},{cor.cmyk[1]},{cor.cmyk[2]},{cor.cmyk[3]},{mist[0]},{mist[1]},{mist[2]},{mist[3]},{mist[4]},{cor.percentual}\n"
 
 d1, d2, d3, d4 = st.columns(4)
 with d1:

@@ -86,6 +86,7 @@ class CorIdentificada:
     rgb: tuple[int, int, int]
     hex: str
     cmyk: tuple[float, float, float, float]
+    mistura: tuple[float, float, float, float, float]  # C,M,Y,Preto,Branco (%)
     percentual: float
 
 
@@ -102,6 +103,30 @@ def rgb_para_cmyk(rgb: tuple[int, int, int]) -> tuple[float, float, float, float
     m = (1 - g - k) / (1 - k)
     y = (1 - b - k) / (1 - k)
     return round(c * 100, 1), round(m * 100, 1), round(y * 100, 1), round(k * 100, 1)
+
+
+def rgb_para_mistura_pintura(rgb: tuple[int, int, int]) -> tuple[float, float, float, float, float]:
+    """Mistura heurística para pintura manual: Ciano, Magenta, Amarelo, Preto, Branco (%)."""
+    r, g, b = [max(0.0, min(1.0, c / 255.0)) for c in rgb]
+    branco = min(r, g, b)
+    # Remove componente branco e calcula CMYK no restante
+    c, m, y, k = rgb_para_cmyk(rgb)
+    # Distribui: branco ocupa branco*100 do total; restante proporcional ao CMYK
+    branco_pct = branco * 100.0
+    restante = 100.0 - branco_pct
+    soma = c + m + y + k
+    if soma <= 1e-9:
+        return 0.0, 0.0, 0.0, 0.0, 100.0
+    c_pct = restante * c / soma
+    m_pct = restante * m / soma
+    y_pct = restante * y / soma
+    k_pct = restante * k / soma
+    vals = [c_pct, m_pct, y_pct, k_pct, branco_pct]
+    # normaliza para somar 100
+    total = sum(vals)
+    if total > 1e-9:
+        vals = [v * 100.0 / total for v in vals]
+    return tuple(round(v, 1) for v in vals)  # type: ignore
 
 
 def nome_cor_proxima(rgb: tuple[int, int, int]) -> str:
@@ -180,6 +205,7 @@ class Canvas:
                     rgb=rgb,
                     hex=rgb_para_hex(rgb),
                     cmyk=rgb_para_cmyk(rgb),
+                    mistura=rgb_para_mistura_pintura(rgb),
                     percentual=round(percentual, 2),
                 )
             )
@@ -274,6 +300,7 @@ class Canvas:
                         rgb=rgb,
                         hex=rgb_para_hex(rgb),
                         cmyk=rgb_para_cmyk(rgb),
+                        mistura=rgb_para_mistura_pintura(rgb),
                         percentual=0.0,
                     )
                 )
@@ -285,26 +312,29 @@ class Canvas:
             return None
 
         row_h = 34
-        header_h = 42
-        width = 980
+        header_h = 62
+        width = 1320
         height = header_h + len(palette) * row_h + 20
         picture = np.ones((height, width, 3), dtype="uint8") * 255
 
-        cv2.putText(picture, "Paleta de Cores Identificada", (20, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, cv2.LINE_AA)
-        cv2.putText(picture, "Nº  Cor  Nome                HEX      RGB             CMYK(%)           Área%", (20, 58), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (60, 60, 60), 1, cv2.LINE_AA)
+        cv2.putText(picture, "Paleta de Cores Identificada - Mistura para Pintura Manual", (20, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2, cv2.LINE_AA)
+        cv2.putText(picture, "Nº  Cor  Nome                HEX      RGB             CMYK(%)           C   M   Y   P   B   Área%", (20, 52), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (50, 50, 50), 1, cv2.LINE_AA)
+        cv2.putText(picture, "Mistura p/ pintura: C=Ciano M=Magenta Y=Amarelo P=Preto B=Branco (%)", (20, 72), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (90, 90, 90), 1, cv2.LINE_AA)
 
         for i, cor in enumerate(palette):
-            y = header_h + 30 + i * row_h
-            cv2.putText(picture, f"{cor.numero:>2}", (20, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 1, cv2.LINE_AA)
-            x0, x1 = 60, 105
+            y = header_h + 24 + i * row_h
+            cv2.putText(picture, f"{cor.numero:>2}", (20, y), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (0, 0, 0), 1, cv2.LINE_AA)
+            x0, x1 = 55, 95
             cv2.rectangle(picture, (x0, y - 18), (x1, y + 5), cor.rgb[::-1], thickness=-1)
             cv2.rectangle(picture, (x0, y - 18), (x1, y + 5), (0, 0, 0), thickness=1)
-            cv2.putText(picture, cor.nome[:18], (120, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-            cv2.putText(picture, cor.hex, (330, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-            cv2.putText(picture, f"{cor.rgb[0]:>3},{cor.rgb[1]:>3},{cor.rgb[2]:>3}", (420, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(picture, cor.nome[:18], (105, y), cv2.FONT_HERSHEY_SIMPLEX, 0.46, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(picture, cor.hex, (285, y), cv2.FONT_HERSHEY_SIMPLEX, 0.46, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(picture, f"{cor.rgb[0]:>3},{cor.rgb[1]:>3},{cor.rgb[2]:>3}", (365, y), cv2.FONT_HERSHEY_SIMPLEX, 0.46, (0, 0, 0), 1, cv2.LINE_AA)
             cmyk = f"{cor.cmyk[0]:>4.0f},{cor.cmyk[1]:>4.0f},{cor.cmyk[2]:>4.0f},{cor.cmyk[3]:>4.0f}"
-            cv2.putText(picture, cmyk, (580, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-            cv2.putText(picture, f"{cor.percentual:>5.1f}%", (800, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(picture, cmyk, (510, y), cv2.FONT_HERSHEY_SIMPLEX, 0.46, (0, 0, 0), 1, cv2.LINE_AA)
+            mist = cor.mistura
+            cv2.putText(picture, f"{mist[0]:>4.0f} {mist[1]:>4.0f} {mist[2]:>4.0f} {mist[3]:>4.0f} {mist[4]:>4.0f}", (690, y), cv2.FONT_HERSHEY_SIMPLEX, 0.46, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(picture, f"{cor.percentual:>5.1f}%", (980, y), cv2.FONT_HERSHEY_SIMPLEX, 0.46, (0, 0, 0), 1, cv2.LINE_AA)
 
         if self.plot:
             self.plot_figure(cv2.cvtColor(picture, cv2.COLOR_BGR2RGB), "Paleta de cores")

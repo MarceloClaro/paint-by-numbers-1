@@ -1,6 +1,6 @@
 # Pintura por Números
 
-Aplicativo para transformar qualquer imagem em uma tela de **pintura por números**, com **paleta de cores identificada** (nome da cor, HEX, RGB, CMYK e porcentagem de área).
+Aplicativo para transformar qualquer imagem em uma tela de **pintura por números**, com **paleta de cores identificada** (nome da cor, HEX, RGB, CMYK, mistura para pintura manual com Ciano/Magenta/Amarelo/Preto/Branco e porcentagem de área).
 
 O projeto inclui:
 
@@ -18,6 +18,7 @@ O projeto inclui:
   - Código HEX
   - Valores RGB
   - Valores CMYK (%)
+  - Mistura para pintura manual: Ciano, Magenta, Amarelo, Preto e Branco (%)
   - Percentual de área na imagem
 - Exportação de resultados em PNG e paleta em CSV (no app Streamlit).
 

@@ -36,7 +36,7 @@ def main():
     tela.display_colormap()
     print(f"Concluído. Arquivos salvos em: {os.path.abspath(args.saida)}")
     for cor in tela.palette_data():
-        print(f"{cor.numero:>2}. {cor.nome:<18} {cor.hex} RGB{cor.rgb} CMYK{cor.cmyk} Área {cor.percentual:.1f}%")
+        m = cor.mistura; print(f"{cor.numero:>2}. {cor.nome:<18} {cor.hex} RGB{cor.rgb} CMYK{cor.cmyk} Mistura(C,M,Y,P,B){m} Área {cor.percentual:.1f}%")
 
 
 if __name__ == "__main__":
