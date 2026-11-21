@@ -45,7 +45,7 @@ streamlit run streamlit_app.py
 
 ```bash
 pip install -r requirements.txt
-python run.py caminho/da/imagem.jpg 12 --tamanho 2000 --saida ./outputs --largura-cm 100 --altura-cm 150 --tinta-ml 500
+python run.py caminho/da/imagem.jpg 12 --saida ./outputs --largura-cm 120 --dpi 150 --cobertura-ml-m2 150 --demoas 1
 ```
 
 Argumentos:
@@ -58,7 +58,10 @@ Argumentos:
 - `--saida`: pasta de saída (padrão: `./outputs`).
 - `--largura-cm`: largura física da pintura em cm (até 500).
 - `--altura-cm`: altura física da pintura em cm (até 500; se omitida, calcula pela proporção).
-- `--tinta-ml`: tinta total estimada em ml (distribuída proporcionalmente à área de cada cor).
+- `--tinta-ml`: tinta total estimada em ml (se omitida e houver dimensões, calcula automaticamente pela cobertura).
+- `--dpi`: resolução usada para calcular pixels a partir do tamanho físico (padrão: 150).
+- `--cobertura-ml-m2`: cobertura acrílica em ml/m² por demão (padrão: 150).
+- `--demoas`: número de demãos (padrão: 1).
 
 ## Saídas geradas
 

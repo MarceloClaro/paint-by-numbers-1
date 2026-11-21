@@ -306,7 +306,7 @@ class Canvas:
                 )
         return self.palette
 
-    def display_colormap(self, total_ml: float | None = None, largura_cm: float | None = None, altura_cm: float | None = None):
+    def display_colormap(self, total_ml: float | None = None, largura_cm: float | None = None, altura_cm: float | None = None, dpi: int | None = None):
         palette = self.palette_data()
         if not palette:
             return None
@@ -325,6 +325,9 @@ class Canvas:
             dim_txt = f" | Dimensão: {largura_cm:.1f} x {altura_cm:.1f} cm"
         if show_ml:
             dim_txt += f" | Tinta total: {float(total_ml):.1f} ml"
+        if dpi and largura_cm and altura_cm:
+            wpx = round(float(largura_cm)/2.54*int(dpi)); hpx = round(float(altura_cm)/2.54*int(dpi))
+            dim_txt += f" | {int(dpi)} DPI ({wpx}x{hpx}px)"
         if dim_txt:
             cv2.putText(picture, dim_txt.strip(" |"), (20, 48), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (60, 60, 60), 1, cv2.LINE_AA)
 

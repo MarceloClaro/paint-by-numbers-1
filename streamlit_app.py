@@ -26,14 +26,16 @@ with st.sidebar:
     st.header("Configurações")
     arquivo = st.file_uploader("Imagem de entrada", type=["jpg", "jpeg", "png", "webp"])
     nb_cores = st.slider("Número de cores", min_value=2, max_value=50, value=12, step=1)
-    tamanho = st.slider("Maior dimensão (px)", min_value=500, max_value=4000, value=1500, step=100)
 
-    st.subheader("Dimensões físicas da pintura")
+    st.subheader("Dimensões físicas da tela")
     manter_proporcao = st.checkbox("Manter proporção da imagem", value=True)
-    largura_cm = st.number_input("Largura (cm)", min_value=1.0, max_value=500.0, value=60.0, step=1.0)
-    altura_cm_default = 60.0
-    altura_cm = st.number_input("Altura (cm)", min_value=1.0, max_value=500.0, value=altura_cm_default, step=1.0, disabled=manter_proporcao)
-    total_ml = st.number_input("Tinta total estimada (ml)", min_value=1.0, max_value=50000.0, value=250.0, step=10.0)
+    largura_cm = st.number_input("Largura (cm)", min_value=10.0, max_value=500.0, value=120.0, step=1.0)
+    altura_cm_input = st.number_input("Altura (cm)", min_value=10.0, max_value=500.0, value=90.0, step=1.0, disabled=manter_proporcao)
+    dpi = st.select_slider("Resolução de saída (DPI)", options=[72, 96, 150, 200, 300], value=150)
+
+    st.subheader("Tinta acrílica (estimativa)")
+    cobertura_ml_m2 = st.number_input("Cobertura acrílica (ml/m² por demão)", min_value=50.0, max_value=500.0, value=150.0, step=10.0)
+    demaos = st.number_input("Número de demãos", min_value=1, max_value=5, value=1, step=1)
     gerar = st.button("Gerar pintura por números", type="primary", use_container_width=True)
 
 if not arquivo:
@@ -45,11 +47,27 @@ img_np = np.array(imagem)
 h_img, w_img = img_np.shape[:2]
 
 if manter_proporcao:
-    altura_cm = max(1.0, min(500.0, largura_cm * (h_img / max(1, w_img))))
-    st.sidebar.caption(f"Altura calculada pela proporção: {altura_cm:.1f} cm")
+    altura_cm = max(10.0, min(500.0, largura_cm * (h_img / max(1, w_img))))
+else:
+    altura_cm = max(10.0, min(500.0, float(altura_cm_input)))
 
 area_cm2 = largura_cm * altura_cm
-st.sidebar.caption(f"Área da pintura: {area_cm2:.0f} cm² ({area_cm2/10000:.2f} m²)")
+area_m2 = area_cm2 / 10000.0
+total_ml = area_m2 * float(cobertura_ml_m2) * int(demaos)
+
+# Tamanho em pixels baseado na dimensão física e DPI
+largura_px = round(largura_cm / 2.54 * float(dpi))
+altura_px = round(altura_cm / 2.54 * float(dpi))
+tamanho_px = max(largura_px, altura_px)
+tamanho_px = max(500, min(8000, tamanho_px))
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("**Valores calculados automaticamente**")
+st.sidebar.write(f"Largura: **{largura_cm:.1f} cm** ({largura_cm/100:.2f} m)")
+st.sidebar.write(f"Altura: **{altura_cm:.1f} cm** ({altura_cm/100:.2f} m)")
+st.sidebar.write(f"Área: **{area_cm2:.0f} cm²** ({area_m2:.2f} m²)")
+st.sidebar.write(f"Resolução: **{dpi} DPI** → **{largura_px} × {altura_px} px**")
+st.sidebar.write(f"Tinta acrílica estimada: **{total_ml:.1f} ml** ({demaos} demão{'s' if int(demaos)>1 else ''}, {cobertura_ml_m2:.0f} ml/m²/demão)")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -57,15 +75,15 @@ with col1:
     st.image(imagem, use_container_width=True)
 
 if not gerar:
-    st.warning("Ajuste as configurações e clique em **Gerar pintura por números**.")
+    st.warning(f"Ajuste as configurações e clique em **Gerar pintura por números**. Saída calculada: {largura_px}×{altura_px} px ({dpi} DPI) para {largura_cm:.1f}×{altura_cm:.1f} cm, tinta estimada {total_ml:.1f} ml.")
     st.stop()
 
 with st.spinner("Processando imagem..."):
-    tela = Canvas(img_np, nb_cores, plot=False, save=False, pixel_size=tamanho)
+    tela = Canvas(img_np, nb_cores, plot=False, save=False, pixel_size=tamanho_px)
     os_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in arquivo.name.rsplit(".", 1)[0]).strip("_") or "imagem"
     tela.namefile = os_name
     canvas_img = tela.generate()
-    paleta_img = tela.display_colormap(total_ml=total_ml, largura_cm=largura_cm, altura_cm=altura_cm)
+    paleta_img = tela.display_colormap(total_ml=total_ml, largura_cm=largura_cm, altura_cm=altura_cm, dpi=int(dpi))
     paleta = tela.palette_data()
 
 with col2:
@@ -77,8 +95,9 @@ st.image(canvas_img, use_container_width=True, clamp=True)
 
 st.subheader("Paleta de cores identificada")
 st.caption(
-    f"Dimensão física: {largura_cm:.1f} × {altura_cm:.1f} cm ({area_cm2/10000:.2f} m²). "
-    f"Tinta total estimada: {total_ml:.1f} ml. "
+    f"Dimensão física: {largura_cm:.1f} × {altura_cm:.1f} cm ({area_cm2/10000:.2f} m²) | "
+    f"Resolução: {dpi} DPI ({largura_px} × {altura_px} px) | "
+    f"Tinta acrílica estimada: {total_ml:.1f} ml ({demaos} demão{'s' if int(demaos)>1 else ''}). "
     "Mistura para pintura manual: C=Ciano, M=Magenta, Y=Amarelo, P=Preto, B=Branco (percentuais heurísticos para referência)."
 )
 linhas = []
