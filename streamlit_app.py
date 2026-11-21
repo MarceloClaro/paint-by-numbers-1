@@ -36,7 +36,7 @@ with st.sidebar:
     st.subheader("Tinta acrílica (estimativa)")
     cobertura_ml_m2 = st.number_input("Cobertura acrílica (ml/m² por demão)", min_value=50.0, max_value=500.0, value=150.0, step=10.0)
     demaos = st.number_input("Número de demãos", min_value=1, max_value=5, value=1, step=1)
-    gerar = st.button("Gerar pintura por números", type="primary", use_container_width=True)
+    gerar = st.button("Gerar pintura por números", type="primary", width='stretch')
 
 if not arquivo:
     st.info("Carregue uma imagem na barra lateral para começar.")
@@ -72,7 +72,7 @@ st.sidebar.write(f"Tinta acrílica estimada: **{total_ml:.1f} ml** ({demaos} dem
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Imagem original")
-    st.image(imagem, use_container_width=True)
+    st.image(imagem, width='stretch')
 
 if not gerar:
     st.warning(f"Ajuste as configurações e clique em **Gerar pintura por números**. Saída calculada: {largura_px}×{altura_px} px ({dpi} DPI) para {largura_cm:.1f}×{altura_cm:.1f} cm, tinta estimada {total_ml:.1f} ml.")
@@ -88,10 +88,10 @@ with st.spinner("Processando imagem..."):
 
 with col2:
     st.subheader("Imagem quantizada")
-    st.image(tela.quantified_image, use_container_width=True)
+    st.image(tela.quantified_image, width='stretch')
 
 st.subheader("Tela para pintar")
-st.image(canvas_img, use_container_width=True, clamp=True)
+st.image(canvas_img, width='stretch', clamp=True)
 
 st.subheader("Paleta de cores identificada")
 st.caption(
@@ -122,18 +122,18 @@ for cor in paleta:
             "Área (%)": f"{cor.percentual:.2f}",
         }
     )
-st.dataframe(linhas, use_container_width=True, hide_index=True)
+st.dataframe(linhas, width='stretch', hide_index=True)
 
 cols = st.columns(min(4, len(paleta)) or 1)
 for i, cor in enumerate(paleta):
     with cols[i % len(cols)]:
         swatch = np.full((70, 140, 3), cor.rgb, dtype=np.uint8)
         ml_cor = float(total_ml) * cor.percentual / 100.0
-        st.image(swatch, caption=f"{cor.numero}. {cor.nome} ({cor.hex}) - {ml_cor:.1f} ml", use_container_width=True)
+        st.image(swatch, caption=f"{cor.numero}. {cor.nome} ({cor.hex}) - {ml_cor:.1f} ml", width='stretch')
 
 if paleta_img is not None:
     st.subheader("Mapa de paleta (imagem)")
-    st.image(cv2.cvtColor(paleta_img, cv2.COLOR_BGR2RGB), use_container_width=True)
+    st.image(cv2.cvtColor(paleta_img, cv2.COLOR_BGR2RGB), width='stretch')
 
 st.subheader("Downloads")
 
@@ -165,11 +165,11 @@ for cor in paleta:
 
 d1, d2, d3, d4 = st.columns(4)
 with d1:
-    st.download_button("Baixar tela (PNG)", img_bytes_gray(canvas_img), file_name=f"{os_name}-tela.png", mime="image/png", use_container_width=True)
+    st.download_button("Baixar tela (PNG)", img_bytes_gray(canvas_img), file_name=f"{os_name}-tela.png", mime="image/png", width='stretch')
 with d2:
-    st.download_button("Baixar quantizada (PNG)", img_bytes_rgb(tela.quantified_image), file_name=f"{os_name}-quantizada.png", mime="image/png", use_container_width=True)
+    st.download_button("Baixar quantizada (PNG)", img_bytes_rgb(tela.quantified_image), file_name=f"{os_name}-quantizada.png", mime="image/png", width='stretch')
 with d3:
     if paleta_img is not None:
-        st.download_button("Baixar paleta (PNG)", img_bytes_rgb(cv2.cvtColor(paleta_img, cv2.COLOR_BGR2RGB)), file_name=f"{os_name}-paleta.png", mime="image/png", use_container_width=True)
+        st.download_button("Baixar paleta (PNG)", img_bytes_rgb(cv2.cvtColor(paleta_img, cv2.COLOR_BGR2RGB)), file_name=f"{os_name}-paleta.png", mime="image/png", width='stretch')
 with d4:
-    st.download_button("Baixar paleta (CSV)", csv.encode("utf-8"), file_name=f"{os_name}-paleta.csv", mime="text/csv", use_container_width=True)
+    st.download_button("Baixar paleta (CSV)", csv.encode("utf-8"), file_name=f"{os_name}-paleta.csv", mime="text/csv", width='stretch')
