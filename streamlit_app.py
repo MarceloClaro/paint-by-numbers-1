@@ -27,10 +27,37 @@ with st.sidebar:
     arquivo = st.file_uploader("Imagem de entrada", type=["jpg", "jpeg", "png", "webp"])
     nb_cores = st.slider("Número de cores", min_value=2, max_value=50, value=12, step=1)
 
+    # Lê proporção da imagem enviada para recalcular altura automaticamente
+    proporcao_img = None
+    if arquivo is not None:
+        try:
+            _img_tmp = Image.open(arquivo)
+            _w_tmp, _h_tmp = _img_tmp.size
+            if _w_tmp > 0:
+                proporcao_img = _h_tmp / _w_tmp
+            arquivo.seek(0)
+        except Exception:
+            proporcao_img = None
+
     st.subheader("Dimensões físicas da tela")
-    manter_proporcao = st.checkbox("Manter proporção da imagem", value=True)
-    largura_cm = st.number_input("Largura (cm)", min_value=10.0, max_value=500.0, value=120.0, step=1.0)
-    altura_cm_input = st.number_input("Altura (cm)", min_value=10.0, max_value=500.0, value=90.0, step=1.0, disabled=manter_proporcao)
+    manter_proporcao = st.checkbox("Manter proporção da imagem", value=True, key="manter_proporcao")
+    largura_cm = st.number_input("Largura (cm)", min_value=10.0, max_value=500.0, value=120.0, step=1.0, key="largura_cm")
+
+    if manter_proporcao and proporcao_img:
+        altura_calc = max(10.0, min(500.0, float(st.session_state["largura_cm"]) * proporcao_img))
+        st.session_state["altura_cm"] = round(altura_calc, 1)
+    elif "altura_cm" not in st.session_state:
+        st.session_state["altura_cm"] = 90.0
+
+    altura_cm_input = st.number_input(
+        "Altura (cm)",
+        min_value=10.0,
+        max_value=500.0,
+        step=1.0,
+        key="altura_cm",
+        disabled=manter_proporcao,
+        help="Calculada automaticamente pela proporção da imagem quando 'Manter proporção' está ativo.",
+    )
     dpi = st.select_slider("Resolução de saída (DPI)", options=[72, 96, 150, 200, 300], value=150)
 
     st.subheader("Tinta acrílica (estimativa)")
@@ -46,10 +73,12 @@ imagem = Image.open(arquivo).convert("RGB")
 img_np = np.array(imagem)
 h_img, w_img = img_np.shape[:2]
 
+# Usa os valores atuais (altura já recalculada na barra lateral quando proporção está ativa)
+largura_cm = float(st.session_state.get("largura_cm", largura_cm))
 if manter_proporcao:
     altura_cm = max(10.0, min(500.0, largura_cm * (h_img / max(1, w_img))))
 else:
-    altura_cm = max(10.0, min(500.0, float(altura_cm_input)))
+    altura_cm = max(10.0, min(500.0, float(st.session_state.get("altura_cm", altura_cm_input))))
 
 area_cm2 = largura_cm * altura_cm
 area_m2 = area_cm2 / 10000.0
