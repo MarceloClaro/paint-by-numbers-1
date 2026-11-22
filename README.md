@@ -4,7 +4,7 @@ Aplicativo para transformar qualquer imagem em uma tela de **pintura por número
 
 O projeto inclui:
 
-- **Aplicativo web (Streamlit)** para uso direto no navegador.
+- **Aplicativo web (Streamlit)** para uso direto no navegador. https://paint-by-numbers1.streamlit.app/#mapa-de-paleta-imagem
 - **CLI (linha de comando)** para gerar arquivos localmente.
 - Geração de **tela numerada**, **imagem quantizada**, **paleta identificada** e **camadas separadas por cor** (PNG/SVG, compatível com corte CNC/laser).
 
