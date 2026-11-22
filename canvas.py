@@ -506,12 +506,14 @@ class Canvas:
         h_mm = float(altura_cm) * 10.0 if altura_cm else float(h)
         unit_w = "mm" if largura_cm else "px"
         unit_h = "mm" if altura_cm else "px"
-        cnts, hier = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        res = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        cnts, hier = (res[0], res[1]) if len(res) == 2 else (res[1], res[2])
         path_d = self._contours_to_svg_path(cnts, hier)
         rgb = tuple(int(v) for v in cor.rgb)
         labels = []
         if incluir_numeros:
-            cnts2, _ = cv2.findContours(mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+            res2 = cv2.findContours(mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+            cnts2 = res2[0] if len(res2) == 2 else res2[1]
             for contour in cnts2:
                 area = abs(cv2.contourArea(contour))
                 _, _, width_ctr, height_ctr = cv2.boundingRect(contour)
