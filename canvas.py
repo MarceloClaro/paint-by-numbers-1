@@ -435,7 +435,103 @@ class Canvas:
 
         return picture
 
-    def color_layers(self, fundo: tuple[int, int, int] = (255, 255, 255), incluir_numeros: bool = True):
+    def _mask_for_color(self, q8, rgb):
+        return cv2.inRange(q8, np.array(rgb, dtype=np.uint8), np.array(rgb, dtype=np.uint8))
+
+    @staticmethod
+    def _contours_to_svg_path(contours, hierarchy):
+        parts = []
+        if hierarchy is None:
+            for cnt in contours:
+                if len(cnt) < 3:
+                    continue
+                pts = cnt[:, 0, :]
+                parts.append("M " + " L ".join(f"{int(x)},{int(y)}" for x, y in pts) + " Z")
+            return " ".join(parts)
+        # hierarchy: [next, prev, first_child, parent]
+        for i, cnt in enumerate(contours):
+            if len(cnt) < 3:
+                continue
+            pts = cnt[:, 0, :]
+            parts.append("M " + " L ".join(f"{int(x)},{int(y)}" for x, y in pts) + " Z")
+        return " ".join(parts)
+
+    def color_layer_svgs(self, largura_cm: float | None = None, altura_cm: float | None = None, incluir_numeros: bool = False):
+        """Gera camadas SVG vetoriais por cor, compatíveis com corte CNC/laser.
+
+        As dimensões físicas são embutidas no SVG (mm) quando informadas.
+        """
+        if self.quantified_image is None:
+            return
+        q8 = np.clip(np.rint(self.quantified_image).astype(np.int32), 0, 255).astype(np.uint8)
+        h, w = q8.shape[:2]
+        w_mm = float(largura_cm) * 10.0 if largura_cm else float(w)
+        h_mm = float(altura_cm) * 10.0 if altura_cm else float(h)
+        unit_w = "mm" if largura_cm else "px"
+        unit_h = "mm" if altura_cm else "px"
+
+        for cor in self.palette_data():
+            rgb = tuple(int(v) for v in cor.rgb)
+            mask = self._mask_for_color(q8, rgb)
+            # CCOMP para preservar buracos
+            cnts, hier = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+            path_d = self._contours_to_svg_path(cnts, hier)
+            hex_cor = cor.hex
+            labels = []
+            if incluir_numeros:
+                cnts2 = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+                cnts2 = cnts2[0] if len(cnts2) == 2 else cnts2[1]
+                for contour in cnts2:
+                    area = abs(cv2.contourArea(contour))
+                    _, _, width_ctr, height_ctr = cv2.boundingRect(contour)
+                    if width_ctr < 10 or height_ctr < 10 or area < 100:
+                        continue
+                    tx, ty = self._posicao_rotulo(contour)
+                    lumin = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+                    txt_color = "#FFFFFF" if lumin < 140 else "#000000"
+                    labels.append(f'<text x="{tx}" y="{ty}" font-size="12" font-family="Arial" fill="{txt_color}">{cor.numero}</text>')
+
+            svg = (
+                f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_mm}{unit_w}" height="{h_mm}{unit_h}" '
+                f'viewBox="0 0 {w} {h}" shape-rendering="geometricPrecision">'
+                f'<rect width="{w}" height="{h}" fill="white"/>'
+                f'<path d="{path_d}" fill="{hex_cor}" stroke="{hex_cor}" stroke-width="0.5" fill-rule="evenodd"/>'
+                + "".join(labels) +
+                '</svg>'
+            )
+            yield {"numero": cor.numero, "nome": cor.nome, "hex": cor.hex, "rgb": rgb, "svg": svg}
+
+    def _svg_for_mask(self, mask, cor, w, h, largura_cm=None, altura_cm=None, incluir_numeros=False):
+        w_mm = float(largura_cm) * 10.0 if largura_cm else float(w)
+        h_mm = float(altura_cm) * 10.0 if altura_cm else float(h)
+        unit_w = "mm" if largura_cm else "px"
+        unit_h = "mm" if altura_cm else "px"
+        cnts, hier = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        path_d = self._contours_to_svg_path(cnts, hier)
+        rgb = tuple(int(v) for v in cor.rgb)
+        labels = []
+        if incluir_numeros:
+            cnts2, _ = cv2.findContours(mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+            for contour in cnts2:
+                area = abs(cv2.contourArea(contour))
+                _, _, width_ctr, height_ctr = cv2.boundingRect(contour)
+                if width_ctr < 10 or height_ctr < 10 or area < 100:
+                    continue
+                tx, ty = self._posicao_rotulo(contour)
+                lumin = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+                txt_color = "#FFFFFF" if lumin < 140 else "#000000"
+                labels.append(f'<text x="{tx}" y="{ty}" font-size="12" font-family="Arial" fill="{txt_color}">{cor.numero}</text>')
+        return (
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_mm}{unit_w}" height="{h_mm}{unit_h}" '
+            f'viewBox="0 0 {w} {h}" shape-rendering="geometricPrecision">'
+            f'<rect width="{w}" height="{h}" fill="white"/>'
+            f'<path d="{path_d}" fill="{cor.hex}" stroke="{cor.hex}" stroke-width="0.5" fill-rule="evenodd"/>'
+            + "".join(labels) +
+            '</svg>'
+        )
+
+    def color_layers(self, fundo: tuple[int, int, int] = (255, 255, 255), incluir_numeros: bool = True,
+                     largura_cm: float | None = None, altura_cm: float | None = None, incluir_svg: bool = False):
         """Gera camadas separadas por cor, como mapa de camadas/topográfico.
 
         Cada camada tem fundo branco (ou escolhido) e apenas as regiões daquela
@@ -447,7 +543,7 @@ class Canvas:
         h, w = q8.shape[:2]
         for cor in self.palette_data():
             rgb = tuple(int(v) for v in cor.rgb)
-            mask = cv2.inRange(q8, np.array(rgb, dtype=np.uint8), np.array(rgb, dtype=np.uint8))
+            mask = self._mask_for_color(q8, rgb)
             layer = np.empty((h, w, 3), dtype=np.uint8)
             layer[:] = np.array(fundo, dtype=np.uint8)
             layer[mask > 0] = np.array(rgb, dtype=np.uint8)
@@ -465,7 +561,10 @@ class Canvas:
                     txt_color = (255, 255, 255) if lumin < 140 else (0, 0, 0)
                     cv2.putText(layer, str(cor.numero), (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 0.45, txt_color, 1, cv2.LINE_AA)
 
-            yield {"numero": cor.numero, "nome": cor.nome, "hex": cor.hex, "rgb": rgb, "imagem": layer}
+            item = {"numero": cor.numero, "nome": cor.nome, "hex": cor.hex, "rgb": rgb, "imagem": layer}
+            if incluir_svg:
+                item["svg"] = self._svg_for_mask(mask, cor, w, h, largura_cm=largura_cm, altura_cm=altura_cm, incluir_numeros=incluir_numeros)
+            yield item
 
     def plot_figure(self, image, title):
         plt.figure(figsize=(10, 10))

@@ -234,7 +234,7 @@ def _preview_rgb(arr_rgb, max_lado=1200):
 
 ncols_camadas = 3
 cols_cam = st.columns(ncols_camadas)
-for i, camada in enumerate(tela.color_layers(incluir_numeros=True)):
+for i, camada in enumerate(tela.color_layers(incluir_numeros=True, largura_cm=largura_cm, altura_cm=altura_cm, incluir_svg=True)):
     with cols_cam[i % ncols_camadas]:
         preview = _preview_rgb(camada["imagem"])
         st.image(
@@ -242,11 +242,22 @@ for i, camada in enumerate(tela.color_layers(incluir_numeros=True)):
             caption=f"Camada {camada['numero']}: {camada['nome']} ({camada['hex']})",
             width='stretch',
         )
-        st.download_button(
-            f"Baixar camada {camada['numero']} (PNG)",
-            img_bytes_rgb(camada["imagem"]),
-            file_name=f"{os_name}-camada-{camada['numero']:02d}.png",
-            mime="image/png",
-            key=f"dl_camada_{camada['numero']}",
-            width='stretch',
-        )
+        dlc1, dlc2 = st.columns(2)
+        with dlc1:
+            st.download_button(
+                f"PNG {camada['numero']}",
+                img_bytes_rgb(camada["imagem"]),
+                file_name=f"{os_name}-camada-{camada['numero']:02d}.png",
+                mime="image/png",
+                key=f"dl_camada_png_{camada['numero']}",
+                width='stretch',
+            )
+        with dlc2:
+            st.download_button(
+                f"SVG {camada['numero']}",
+                camada.get("svg", "").encode("utf-8"),
+                file_name=f"{os_name}-camada-{camada['numero']:02d}.svg",
+                mime="image/svg+xml",
+                key=f"dl_camada_svg_{camada['numero']}",
+                width='stretch',
+            )
