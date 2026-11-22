@@ -43,21 +43,35 @@ with st.sidebar:
     manter_proporcao = st.checkbox("Manter proporção da imagem", value=True, key="manter_proporcao")
     largura_cm = st.number_input("Largura (cm)", min_value=10.0, max_value=500.0, value=120.0, step=1.0, key="largura_cm")
 
-    if manter_proporcao and proporcao_img:
-        altura_calc = max(10.0, min(500.0, float(st.session_state["largura_cm"]) * proporcao_img))
-        st.session_state["altura_cm"] = round(altura_calc, 1)
-    elif "altura_cm" not in st.session_state:
-        st.session_state["altura_cm"] = 90.0
+    if "altura_cm_manual" not in st.session_state:
+        st.session_state["altura_cm_manual"] = 90.0
 
-    altura_cm_input = st.number_input(
-        "Altura (cm)",
-        min_value=10.0,
-        max_value=500.0,
-        step=1.0,
-        key="altura_cm",
-        disabled=manter_proporcao,
-        help="Calculada automaticamente pela proporção da imagem quando 'Manter proporção' está ativo.",
-    )
+    if manter_proporcao:
+        if proporcao_img:
+            altura_calc = max(10.0, min(500.0, float(st.session_state["largura_cm"]) * proporcao_img))
+        else:
+            altura_calc = float(st.session_state.get("altura_cm_manual", 90.0))
+        altura_cm_input = st.number_input(
+            "Altura (cm) — calculada automaticamente",
+            min_value=10.0,
+            max_value=500.0,
+            value=round(altura_calc, 1),
+            step=1.0,
+            disabled=True,
+            help="Recalculada automaticamente ao alterar a largura com base na proporção da imagem. Carregue uma imagem para cálculo automático.",
+        )
+        st.session_state["altura_cm"] = round(float(altura_cm_input), 1)
+    else:
+        altura_cm_input = st.number_input(
+            "Altura (cm)",
+            min_value=10.0,
+            max_value=500.0,
+            step=1.0,
+            key="altura_cm_manual",
+            disabled=False,
+            help="Edite manualmente ou ative 'Manter proporção da imagem' para cálculo automático.",
+        )
+        st.session_state["altura_cm"] = float(st.session_state["altura_cm_manual"])
     dpi = st.select_slider("Resolução de saída (DPI)", options=[72, 96, 150, 200, 300], value=150)
 
     st.subheader("Tinta acrílica (estimativa)")
