@@ -216,3 +216,37 @@ with d3:
         st.download_button("Baixar paleta (PNG)", img_bytes_rgb(cv2.cvtColor(paleta_img, cv2.COLOR_BGR2RGB)), file_name=f"{os_name}-paleta.png", mime="image/png", width='stretch')
 with d4:
     st.download_button("Baixar paleta (CSV)", csv.encode("utf-8"), file_name=f"{os_name}-paleta.csv", mime="text/csv", width='stretch')
+
+st.subheader("Camadas separadas por cor (mapa de camadas)")
+st.caption(
+    "Cada camada mostra apenas as regiões de um número/cor, como um mapa topográfico por camadas. "
+    "Juntas, as camadas compõem a imagem quantizada."
+)
+
+def _preview_rgb(arr_rgb, max_lado=1200):
+    h, w = arr_rgb.shape[:2]
+    m = max(h, w)
+    if m <= max_lado:
+        return arr_rgb
+    escala = max_lado / float(m)
+    nw, nh = max(1, int(w * escala)), max(1, int(h * escala))
+    return cv2.resize(arr_rgb, (nw, nh), interpolation=cv2.INTER_AREA)
+
+ncols_camadas = 3
+cols_cam = st.columns(ncols_camadas)
+for i, camada in enumerate(tela.color_layers(incluir_numeros=True)):
+    with cols_cam[i % ncols_camadas]:
+        preview = _preview_rgb(camada["imagem"])
+        st.image(
+            preview,
+            caption=f"Camada {camada['numero']}: {camada['nome']} ({camada['hex']})",
+            width='stretch',
+        )
+        st.download_button(
+            f"Baixar camada {camada['numero']} (PNG)",
+            img_bytes_rgb(camada["imagem"]),
+            file_name=f"{os_name}-camada-{camada['numero']:02d}.png",
+            mime="image/png",
+            key=f"dl_camada_{camada['numero']}",
+            width='stretch',
+        )

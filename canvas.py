@@ -435,6 +435,38 @@ class Canvas:
 
         return picture
 
+    def color_layers(self, fundo: tuple[int, int, int] = (255, 255, 255), incluir_numeros: bool = True):
+        """Gera camadas separadas por cor, como mapa de camadas/topográfico.
+
+        Cada camada tem fundo branco (ou escolhido) e apenas as regiões daquela
+        cor preenchidas com a cor correspondente, opcionalmente com o número.
+        """
+        if self.quantified_image is None:
+            return
+        q8 = np.clip(np.rint(self.quantified_image).astype(np.int32), 0, 255).astype(np.uint8)
+        h, w = q8.shape[:2]
+        for cor in self.palette_data():
+            rgb = tuple(int(v) for v in cor.rgb)
+            mask = cv2.inRange(q8, np.array(rgb, dtype=np.uint8), np.array(rgb, dtype=np.uint8))
+            layer = np.empty((h, w, 3), dtype=np.uint8)
+            layer[:] = np.array(fundo, dtype=np.uint8)
+            layer[mask > 0] = np.array(rgb, dtype=np.uint8)
+
+            if incluir_numeros:
+                cnts = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+                cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+                for contour in cnts:
+                    area = abs(cv2.contourArea(contour))
+                    _, _, width_ctr, height_ctr = cv2.boundingRect(contour)
+                    if width_ctr < 10 or height_ctr < 10 or area < 100:
+                        continue
+                    tx, ty = self._posicao_rotulo(contour)
+                    lumin = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+                    txt_color = (255, 255, 255) if lumin < 140 else (0, 0, 0)
+                    cv2.putText(layer, str(cor.numero), (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 0.45, txt_color, 1, cv2.LINE_AA)
+
+            yield {"numero": cor.numero, "nome": cor.nome, "hex": cor.hex, "rgb": rgb, "imagem": layer}
+
     def plot_figure(self, image, title):
         plt.figure(figsize=(10, 10))
         plt.axis("off")
