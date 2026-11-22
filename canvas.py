@@ -7,12 +7,7 @@ from __future__ import annotations
 import os
 
 import cv2
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.cluster import KMeans
-from sklearn.utils import shuffle
 
 
 # Paleta de referência para identificação por nome (PT-BR).
@@ -294,6 +289,9 @@ class Canvas:
         return clean_pic
 
     def quantification(self, picture):
+        from sklearn.cluster import KMeans
+        from sklearn.utils import shuffle
+
         width, height, dimension = tuple(picture.shape)
         image_array = np.reshape(picture, (width * height, dimension))
         sample_size = min(1000, len(image_array))
@@ -569,6 +567,10 @@ class Canvas:
             yield item
 
     def plot_figure(self, image, title):
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
         plt.figure(figsize=(10, 10))
         plt.axis("off")
         plt.title(title)
