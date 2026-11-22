@@ -91,7 +91,35 @@ Abra o endereço exibido pelo Streamlit (normalmente `http://localhost:8501`).
 
 ## Vídeo: como rodar localmente
 
-Vídeo explicativo: [`docs/como-rodar-localmente.mp4`](docs/como-rodar-localmente.mp4)
+Vídeo explicativo com **narração masculina** (`pt-BR-AntonioNeural`): [`docs/como-rodar-localmente.mp4`](docs/como-rodar-localmente.mp4)
+
+Roteiro completo (cenas, texto na tela e narração): [`docs/roteiro-como-rodar-localmente.md`](docs/roteiro-como-rodar-localmente.md)
+
+### Roteiro rápido (clonar, instalar e executar)
+
+1. **Pré-requisito no WSL (Ubuntu):**
+   ```bash
+   sudo apt update && sudo apt install -y python3 python3-venv python3-pip
+   ```
+2. **Clonar do GitHub:**
+   ```bash
+   git clone https://github.com/MarceloClaro/paint-by-numbers-1.git
+   cd paint-by-numbers-1
+   chmod +x iniciar_no_wsl.sh
+   ```
+3. **Criar atalho na Área de Trabalho do Windows:** salve `Pintura por Numeros (WSL).bat` com:
+   ```bat
+   @echo off
+   title Pintura por Numeros - WSL
+   echo Iniciando Pintura por Numeros no WSL...
+   wsl.exe -d Ubuntu --cd /home/marceloclaro/paint-by-numbers-1 bash -lc "./iniciar_no_wsl.sh"
+   if errorlevel 1 (
+     echo.
+     echo Ocorreu um erro ao iniciar o app.
+     pause
+   )
+   ```
+4. **Executar:** dê duplo clique no `.bat`. Na primeira execução, o script cria `.venv-wsl`, instala dependências e abre `http://localhost:8501`. Para encerrar, use `Ctrl+C` ou feche a janela.
 
 ## Execução local (CLI)
 
@@ -158,7 +186,7 @@ O repositório está preparado para [Streamlit Community Cloud](https://share.st
 ├── packages.txt              # Pacotes de sistema (Streamlit Cloud)
 ├── runtime.txt               # Versão Python para Cloud
 ├── .python-version           # Versão Python
-├── docs/                     # Vídeos/documentação
+├── docs/                     # Vídeo, roteiro e documentação
 ├── inputs/                   # Imagens de exemplo
 └── outputs/                  # Resultados gerados
 ```
